@@ -9,12 +9,28 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Send, Plus, MessageSquare, User, Bot, Menu, Settings, Trash2, AlertCircle, RefreshCw, Zap } from "lucide-react"
+import { DynamicComponentLoader, ComponentFallback } from "@/lib/dynamic-component-loader"
+import { SimpleComponentLoader } from "@/lib/simple-component-loader"
+import { LiveComponentRenderer } from "@/lib/live-component-renderer"
+import { V0ComponentRenderer } from "@/lib/v0-component-renderer"
+import { DirectComponentRenderer } from "@/lib/direct-component-renderer"
+import { RealComponentRenderer } from "@/lib/real-component-renderer"
+import { V0ComponentExecutor } from "@/lib/v0-component-executor"
+import { EnhancedV0Renderer } from "@/lib/enhanced-v0-renderer"
+import { IframeComponentRenderer } from "@/lib/iframe-component-renderer"
+import { DynamicRenderer } from "@/lib/dynamic-renderer"
+import { LazyDynamicRenderer } from "@/lib/lazy-loader"
 
 interface Message {
   id: string
   role: "user" | "assistant"
   content: string
   timestamp: Date
+  component?: string
+  analysis?: any
+  componentFile?: string // Added for DynamicComponentLoader
+  componentName?: string // Added for component name
+  error?: string // Added for error handling
 }
 
 interface Conversation {
@@ -32,6 +48,7 @@ export default function ChatGPTClone() {
   const [conversations, setConversations] = useState<Conversation[]>([])
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [selectedProvider, setSelectedProvider] = useState<"openai" | "v0" | "smart">("smart")
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
   const scrollToBottom = () => {
@@ -40,6 +57,21 @@ export default function ChatGPTClone() {
 
   useEffect(() => {
     scrollToBottom()
+  }, [messages])
+
+  // Debug component rendering
+  useEffect(() => {
+    messages.forEach(message => {
+      if (message.componentFile) {
+        console.log('Message has componentFile:', message.componentFile, 'analysis:', message.analysis)
+      }
+      if (message.component) {
+        console.log('Message has component:', message.component.substring(0, 100))
+      }
+      if (message.componentName) {
+        console.log('Message has component:', message.componentName)
+      }
+    })
   }, [messages])
 
   // Auto-generate conversation title from first message
@@ -117,9 +149,11 @@ export default function ChatGPTClone() {
     console.log("API Messages:", apiMessages)
 
     try {
-      console.log("Making fetch request...")
+      const endpoint = selectedProvider === "openai" ? "/api/chat" : 
+                      selectedProvider === "v0" ? "/api/v0-chat" : "/api/smart-chat"
+      console.log("Making fetch request to:", endpoint)
 
-      const response = await fetch("/api/chat", {
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -162,6 +196,9 @@ export default function ChatGPTClone() {
       const data = await response.json()
       console.log("Response data keys:", Object.keys(data))
       console.log("Response preview:", data.response?.substring(0, 100) + "...")
+      console.log("Component file:", data.componentFile)
+      console.log("Component:", data.component)
+      console.log("Analysis:", data.analysis)
 
       if (data.error) {
         throw new Error(data.error)
@@ -177,6 +214,11 @@ export default function ChatGPTClone() {
         role: "assistant",
         content: data.response,
         timestamp: new Date(),
+        component: data.component,
+        analysis: data.analysis,
+        componentFile: data.componentFile,
+        componentName: data.component,
+        error: data.error,
       }
 
       const finalMessages = [...newMessages, assistantMessage]
@@ -184,6 +226,7 @@ export default function ChatGPTClone() {
 
       // Update conversation
       if (currentConversationId) {
+        console.log('updating conversation', finalMessages)
         setConversations((prev) =>
           prev.map((conv) => (conv.id === currentConversationId ? { ...conv, messages: finalMessages } : conv)),
         )
@@ -282,9 +325,40 @@ export default function ChatGPTClone() {
           </Button>
           <h1 className="text-lg font-semibold">ChatGPT Clone</h1>
           <div className="ml-auto flex items-center space-x-3">
+            {/* Provider Selector */}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">Provider:</span>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <Button
+                  variant={selectedProvider === "openai" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedProvider("openai")}
+                  className={`text-xs ${selectedProvider === "openai" ? "bg-white shadow-sm" : "hover:bg-gray-200"}`}
+                >
+                  OpenAI
+                </Button>
+                <Button
+                  variant={selectedProvider === "v0" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedProvider("v0")}
+                  className={`text-xs ${selectedProvider === "v0" ? "bg-white shadow-sm" : "hover:bg-gray-200"}`}
+                >
+                  V0
+                </Button>
+                <Button
+                  variant={selectedProvider === "smart" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedProvider("smart")}
+                  className={`text-xs ${selectedProvider === "smart" ? "bg-white shadow-sm" : "hover:bg-gray-200"}`}
+                >
+                  Smart
+                </Button>
+              </div>
+            </div>
             <Badge variant="default" className="text-xs">
               <Zap className="w-3 h-3 mr-1" />
-              OpenAI GPT-4o Mini
+              {selectedProvider === "openai" ? "OpenAI GPT-4o Mini" : 
+               selectedProvider === "v0" ? "V0 AI" : "Smart AI"}
             </Badge>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
@@ -316,40 +390,43 @@ export default function ChatGPTClone() {
               <div className="text-center">
                 <Bot className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                 <h2 className="text-2xl font-semibold text-gray-700 mb-2">How can I help you today?</h2>
-                <p className="text-gray-500">Connected to OpenAI's GPT-4o Mini API for real AI responses.</p>
+                <p className="text-gray-500">Connected to {selectedProvider === "openai" ? "OpenAI's GPT-4o Mini" : 
+                  selectedProvider === "v0" ? "V0 AI" : "Smart AI (OpenAI + V0)"} API for real AI responses.</p>
                 <div className="mt-6 grid grid-cols-1 gap-2 max-w-md mx-auto">
                   <Button
                     variant="outline"
                     className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("Hello! How are you?")}
+                    onClick={() => handleSuggestedPrompt("Show me a weather dashboard for New York")}
                   >
-                    "Hello! How are you?"
+                    "Show me a weather dashboard for New York"
                   </Button>
                   <Button
                     variant="outline"
                     className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("What is 2+2?")}
+                    onClick={() => handleSuggestedPrompt("Create a todo list with 5 tasks")}
                   >
-                    "What is 2+2?"
+                    "Create a todo list with 5 tasks"
                   </Button>
                   <Button
                     variant="outline"
                     className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("Tell me a joke")}
+                    onClick={() => handleSuggestedPrompt("Display a comparison chart of AI models")}
                   >
-                    "Tell me a joke"
+                    "Display a comparison chart of AI models"
                   </Button>
                   <Button
                     variant="outline"
                     className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("Explain AI in simple terms")}
+                    onClick={() => handleSuggestedPrompt("Show me a progress tracker for my goals")}
                   >
-                    "Explain AI in simple terms"
+                    "Show me a progress tracker for my goals"
                   </Button>
                 </div>
                 <div className="mt-4 text-xs text-gray-400">
-                  <p>🚀 Powered by OpenAI's GPT-4o Mini API</p>
+                  <p>🚀 Powered by {selectedProvider === "openai" ? "OpenAI's GPT-4o Mini" : 
+                    selectedProvider === "v0" ? "V0 AI" : "Smart AI (OpenAI + V0)"} API</p>
                 </div>
+
               </div>
             </div>
           ) : (
@@ -369,9 +446,15 @@ export default function ChatGPTClone() {
                     <div className="font-semibold text-sm text-gray-700 mb-1">
                       {message.role === "user" ? "You" : "ChatGPT"}
                     </div>
-                    <div className="prose prose-sm max-w-none">
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                    </div>
+                        <div className="prose prose-sm max-w-none">
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                        
+                        {message.componentFile && (
+                          <div className="mt-4">
+                            <LazyDynamicRenderer filename={message.componentFile} />
+                          </div>
+                        )}
+                      </div>
                   </div>
                 </div>
               ))}
