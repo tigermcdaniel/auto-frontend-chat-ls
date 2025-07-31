@@ -46,12 +46,21 @@ export async function saveComponentToFile(
     console.log('Using component code directly without validation...')
     let cleanedCode = componentCode
     
-    // Remove top 2 lines and last line
+    // Find the actual component code by looking for import statements or 'use client'
     const lines = cleanedCode.split('\n')
-    if (lines.length > 3) {
-      // Remove first 2 lines and last line
-      cleanedCode = lines.slice(2, -1).join('\n')
+    let startIndex = 0
+    
+    // Find where the actual component code starts
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      if (line.startsWith('import ') || line.startsWith("'use client'") || line.startsWith('"use client"')) {
+        startIndex = i
+        break
+      }
     }
+    
+    // Extract from the start of imports to the end
+    cleanedCode = lines.slice(startIndex).join('\n')
 
     console.log('Cleaned code:', cleanedCode)
     const componentName = extractComponentName(cleanedCode);
