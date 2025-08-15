@@ -40,6 +40,37 @@ export async function POST(req: Request) {
     
     console.log("Making request to V0 API for component...")
 
+    // Create enhanced messages with documentation requirements
+    const enhancedMessages = [
+      {
+        role: "system",
+        content: `You are a React component generator that creates well-documented, production-ready components.
+
+CRITICAL: Generate COMPLETE components - do not truncate or cut off the code. Ensure all components have proper closing tags, complete functions, and full implementations.
+
+IMPORTANT: If the component is complex and might exceed token limits, prioritize completeness over documentation. Focus on the core functionality first, then add documentation if space allows.
+
+IMPORTANT REQUIREMENTS:
+1. Always include comprehensive JSDoc comments for the main component function
+2. Define clear TypeScript interfaces for all props
+3. Include detailed descriptions of what the component does
+4. Document all prop types with examples
+5. Add inline comments for complex logic
+6. Use descriptive variable names
+7. Include error handling where appropriate
+8. TEST THE COMPONENT before returning it
+9. ALWAYS include the complete export default statement
+10. Ensure all JSX elements have proper closing tags
+
+DOCUMENTATION FORMAT:
+- Use JSDoc comments with @param, @returns, @example tags
+- Define interfaces with detailed descriptions
+- Include usage examples in comments
+- Document any special behavior or edge cases`
+      },
+      ...messages
+    ]
+
     // Make direct HTTP request to V0 API for component only
     const v0Response = await fetch("https://api.v0.dev/chat/completions", {
       method: "POST",
@@ -48,9 +79,10 @@ export async function POST(req: Request) {
         Authorization: `Bearer ${v0ApiKey}`,
       },
       body: JSON.stringify({
-        model: "v0-1.0-md",
-        messages: messages,
+        model: "v0-1.0-lg", // Try the large model for bigger components
+        messages: enhancedMessages,
         stream: false,
+        max_tokens: 50000, // Very high limit to prevent truncation
       }),
     })
 
@@ -86,13 +118,69 @@ export async function POST(req: Request) {
       return Response.json({ error: "No response from V0" }, { status: 500 })
     }
 
-    const componentCode = v0Data.choices[0].message.content
+    let componentCode = v0Data.choices[0].message.content
     console.log("Component code length:", componentCode?.length)
     console.log("Component code preview:", componentCode?.substring(0, 200) + "...")
+    console.log("Component code end:", componentCode?.substring(componentCode.length - 200))
+    
+    // Check V0 API response details
+    console.log("V0 API response details:")
+    console.log("- Usage tokens:", v0Data.usage?.total_tokens)
+    console.log("- Prompt tokens:", v0Data.usage?.prompt_tokens)
+    console.log("- Completion tokens:", v0Data.usage?.completion_tokens)
+    console.log("- Finish reason:", v0Data.choices?.[0]?.finish_reason)
+    
+    // Check if V0 stopped early
+    if (v0Data.choices?.[0]?.finish_reason === 'length') {
+      console.warn("⚠️ V0 stopped due to length limit - component may be truncated")
+    }
+    
+    // Check if the response seems truncated
+    if (componentCode && componentCode.length > 0) {
+      const lines = componentCode.split('\n')
+      const lastLine = lines[lines.length - 1] || ''
+      const secondLastLine = lines[lines.length - 2] || ''
+      
+      // Check for various truncation indicators
+      const isTruncated = 
+        !lastLine.trim() || 
+        lastLine.includes('...') || 
+        lastLine.includes('truncated') ||
+        lastLine.includes('// ...') ||
+        secondLastLine.includes('// ...') ||
+        componentCode.length < 500 || // Very short responses might be truncated
+        !componentCode.includes('export default') || // Missing export suggests truncation
+        lines.length < 200 || // Components should typically be longer than 200 lines
+        (lines.length > 150 && !componentCode.includes('}')) // Long components without closing braces
+      
+      if (isTruncated) {
+        console.warn("⚠️ Component response appears to be truncated!")
+        console.warn("Component length:", componentCode.length, "lines:", lines.length)
+        console.warn("Last few lines:", lines.slice(-3).join('\n'))
+        
+        // If truncated, log the issue but don't retry with simpler version
+        console.warn("⚠️ Component appears to be truncated by V0 API")
+        console.warn("This may be due to V0's internal limits")
+        console.warn("Consider breaking down complex requests into smaller parts")
+      } else {
+        console.log("✅ Component appears complete (length:", componentCode.length, "lines:", lines.length, ")")
+      }
+    }
 
     if (!componentCode) {
       console.error("No content in V0 response")
       return Response.json({ error: "Empty response from V0" }, { status: 500 })
+    }
+
+    // Validate the generated component
+    console.log("Validating generated component...")
+    const validationResult = validateComponent(componentCode)
+    
+    if (!validationResult.isValid) {
+      console.warn("Component validation issues found:", validationResult.issues)
+      // Continue anyway but log the issues
+    } else {
+      console.log("✅ Component validation passed")
     }
 
     // Now make a ChatGPT call to generate sample data
@@ -219,5 +307,61 @@ Return ONLY the JSON object.`
       },
       { status: 500 },
     )
+  }
+}
+
+// Component validation function
+function validateComponent(componentCode: string) {
+  const issues: string[] = []
+  let isValid = true
+
+  // Check for basic React component structure
+  if (!componentCode.includes('export default function') && !componentCode.includes('export default const')) {
+    issues.push('Missing default export function')
+    isValid = false
+  }
+
+  // Check for TypeScript interfaces
+  if (!componentCode.includes('interface') && !componentCode.includes('type')) {
+    issues.push('Missing TypeScript interface definitions')
+  }
+
+  // Check for JSDoc comments
+  if (!componentCode.includes('/**') || !componentCode.includes('@param')) {
+    issues.push('Missing JSDoc documentation')
+  }
+
+  // Check for proper imports
+  if (!componentCode.includes('import')) {
+    issues.push('Missing import statements')
+    isValid = false
+  }
+
+  // Check for return statement
+  if (!componentCode.includes('return')) {
+    issues.push('Missing return statement')
+    isValid = false
+  }
+
+  // Check for JSX
+  if (!componentCode.includes('<') || !componentCode.includes('>')) {
+    issues.push('Missing JSX elements')
+    isValid = false
+  }
+
+  // Check for error handling
+  if (!componentCode.includes('try') && !componentCode.includes('catch') && !componentCode.includes('error')) {
+    issues.push('No error handling detected')
+  }
+
+  // Check for accessibility
+  if (!componentCode.includes('aria-') && !componentCode.includes('role=')) {
+    issues.push('No accessibility attributes detected')
+  }
+
+  return {
+    isValid,
+    issues,
+    score: Math.max(0, 10 - issues.length) // Score out of 10
   }
 } 

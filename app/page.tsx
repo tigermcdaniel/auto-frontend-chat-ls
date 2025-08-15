@@ -20,6 +20,7 @@ import { EnhancedV0Renderer } from "@/lib/enhanced-v0-renderer"
 import { IframeComponentRenderer } from "@/lib/iframe-component-renderer"
 import { DynamicRenderer } from "@/lib/dynamic-renderer"
 import { LazyDynamicRenderer } from "@/lib/lazy-loader"
+import { SaveToLibraryDialog } from "@/components/save-to-library-dialog"
 
 interface Message {
   id: string
@@ -217,7 +218,7 @@ export default function ChatGPTClone() {
         component: data.component,
         analysis: data.analysis,
         componentFile: data.componentFile,
-        componentName: data.component,
+        componentName: data.componentName,
         error: data.error,
       }
 
@@ -452,6 +453,15 @@ export default function ChatGPTClone() {
                         {message.componentFile && (
                           <div className="mt-4">
                             <LazyDynamicRenderer filename={message.componentFile} />
+                            <div className="mt-4 flex justify-end">
+                              <SaveToLibraryDialog 
+                                generatedFilename={message.componentFile}
+                                componentName={message.componentName || 'Component'}
+                                onSaved={() => {
+                                  console.log('Component saved to library')
+                                }}
+                              />
+                            </div>
                           </div>
                         )}
                       </div>

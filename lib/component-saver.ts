@@ -44,6 +44,10 @@ export async function saveComponentToFile(
     
     // Skip validation - use component code directly
     console.log('Using component code directly without validation...')
+    console.log('Original component code length:', componentCode.length)
+    console.log('Original component code preview:', componentCode.substring(0, 500) + '...')
+    console.log('Original component code end:', componentCode.substring(componentCode.length - 200))
+    
     let cleanedCode = componentCode
     
     // Find the actual component code by looking for import statements or 'use client'
@@ -59,8 +63,46 @@ export async function saveComponentToFile(
       }
     }
     
-    // Extract from the start of imports to the end
-    cleanedCode = lines.slice(startIndex).join('\n')
+    // If no imports found, look for code patterns
+    if (startIndex === 0) {
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim()
+        if (line.startsWith('interface ') || line.startsWith('type ') || line.startsWith('export ') || line.startsWith('function ') || line.startsWith('const ')) {
+          startIndex = i
+          break
+        }
+      }
+    }
+    
+    // Extract from the start of code to the end
+    let codeLines = lines.slice(startIndex)
+    
+    // Find where the component code ends (remove thinking/analysis)
+    let endIndex = codeLines.length
+    for (let i = codeLines.length - 1; i >= 0; i--) {
+      const line = codeLines[i].trim()
+      if (line.includes('<Thinking>') || line.includes('Let me') || line.includes('I will') || 
+          line.includes('Project Structure:') || line.includes('Components:')) {
+        endIndex = i
+        break
+      }
+    }
+    
+    cleanedCode = codeLines.slice(0, endIndex).join('\n')
+    
+    // Check if component is incomplete and try to fix it
+    if (cleanedCode && !cleanedCode.trim().endsWith('}')) {
+      console.warn('⚠️ Component appears incomplete - missing closing brace')
+      // Try to find the last opening brace and close it
+      const braceCount = (cleanedCode.match(/{/g) || []).length - (cleanedCode.match(/}/g) || []).length
+      if (braceCount > 0) {
+        console.log(`Adding ${braceCount} missing closing brace(s)`)
+        cleanedCode += '}'.repeat(braceCount)
+      }
+    }
+    
+    console.log('Cleaned component code length:', cleanedCode.length)
+    console.log('Cleaned component code end:', cleanedCode.substring(cleanedCode.length - 200))
 
     console.log('Cleaned code:', cleanedCode)
     const componentName = extractComponentName(cleanedCode);
@@ -74,6 +116,12 @@ export async function saveComponentToFile(
     cleanedCode = cleanedCode
       .replace(/^'use client';?\s*/g, '')
       .replace(/^"use client";?\s*/g, '')
+      .trim()
+    
+    // Remove markdown code block markers
+    cleanedCode = cleanedCode
+      .replace(/^```(tsx|ts|jsx|js)?\s*/g, '') // Remove opening ```
+      .replace(/\s*```\s*$/g, '') // Remove closing ```
       .trim()
     
     // Write the component to file
