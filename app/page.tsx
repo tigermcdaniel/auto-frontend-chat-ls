@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
-import { Send, Plus, MessageSquare, User, Bot, Menu, Settings, Trash2, AlertCircle, RefreshCw, Zap } from "lucide-react"
+import { Send, Plus, MessageSquare, User, Bot, Menu, Settings, Trash2, AlertCircle, RefreshCw, Zap, Sparkles } from "lucide-react"
 import { DynamicComponentLoader, ComponentFallback } from "@/lib/dynamic-component-loader"
 import { SimpleComponentLoader } from "@/lib/simple-component-loader"
 import { LiveComponentRenderer } from "@/lib/live-component-renderer"
@@ -41,7 +41,7 @@ interface Conversation {
   createdAt: Date
 }
 
-export default function ChatGPTClone() {
+export default function SkincareExpertChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
@@ -78,7 +78,7 @@ export default function ChatGPTClone() {
   // Auto-generate conversation title from first message
   useEffect(() => {
     if (messages.length === 2 && currentConversationId) {
-      const firstUserMessage = messages.find((m) => m.role === "user")?.content || "New Chat"
+      const firstUserMessage = messages.find((m) => m.role === "user")?.content || "New Skincare Chat"
       const title = firstUserMessage.length > 30 ? firstUserMessage.substring(0, 30) + "..." : firstUserMessage
 
       setConversations((prev) =>
@@ -91,7 +91,7 @@ export default function ChatGPTClone() {
     const newId = Date.now().toString()
     const newConversation: Conversation = {
       id: newId,
-      title: "New Chat",
+      title: "New Skincare Chat",
       messages: [],
       createdAt: new Date(),
     }
@@ -269,18 +269,18 @@ export default function ChatGPTClone() {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex h-screen bg-white">
       {/* Sidebar */}
       <div
-        className={`${sidebarOpen ? "w-64" : "w-0"} transition-all duration-300 bg-gray-900 text-white overflow-hidden`}
+        className={`${sidebarOpen ? "w-64" : "w-0"} transition-all duration-300 bg-gray-50 border-r border-gray-200 text-gray-800 overflow-hidden`}
       >
         <div className="p-4">
           <Button
             onClick={startNewConversation}
-            className="w-full bg-gray-800 hover:bg-gray-700 text-white border border-gray-600"
+            className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-800 border border-yellow-300 font-medium"
           >
             <Plus className="w-4 h-4 mr-2" />
-            New Chat
+            New Skincare Chat
           </Button>
         </div>
 
@@ -289,9 +289,9 @@ export default function ChatGPTClone() {
             <div key={conversation.id} className="group relative">
               <Button
                 variant="ghost"
-                className={`w-full justify-start text-left p-3 mb-1 hover:bg-gray-800 ${
-                  currentConversationId === conversation.id ? "bg-gray-800" : ""
-                }`}
+                                  className={`w-full justify-start text-left p-3 mb-1 hover:bg-lavender-100 ${
+                    currentConversationId === conversation.id ? "bg-lavender-200 text-follain-green-800" : "text-gray-700"
+                  }`}
                 onClick={() => loadConversation(conversation)}
               >
                 <MessageSquare className="w-4 h-4 mr-2 flex-shrink-0" />
@@ -300,7 +300,7 @@ export default function ChatGPTClone() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 hover:bg-gray-700"
+                className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 hover:bg-gray-200 text-gray-500"
                 onClick={() => deleteConversation(conversation.id)}
               >
                 <Trash2 className="w-3 h-3" />
@@ -309,8 +309,8 @@ export default function ChatGPTClone() {
           ))}
         </ScrollArea>
 
-        <div className="p-4 border-t border-gray-700">
-          <Button variant="ghost" className="w-full justify-start text-gray-300 hover:bg-gray-800">
+        <div className="p-4 border-t border-gray-200">
+          <Button variant="ghost" className="w-full justify-start text-gray-600 hover:bg-gray-100">
             <Settings className="w-4 h-4 mr-2" />
             Settings
           </Button>
@@ -321,10 +321,15 @@ export default function ChatGPTClone() {
       <div className="flex-1 flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 p-4 flex items-center">
-          <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4">
+          <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(!sidebarOpen)} className="mr-4 text-gray-600">
             <Menu className="w-5 h-5" />
           </Button>
-          <h1 className="text-lg font-semibold">ChatGPT Clone</h1>
+                      <div className="flex items-center">
+              <Sparkles className="w-6 h-6 mr-2 text-follain-green-700" />
+              <h1 className="text-lg font-semibold text-follain-green-800">
+                Skincare Expert AI
+              </h1>
+            </div>
           <div className="ml-auto flex items-center space-x-3">
             {/* Provider Selector */}
             <div className="flex items-center space-x-2">
@@ -356,13 +361,13 @@ export default function ChatGPTClone() {
                 </Button>
               </div>
             </div>
-            <Badge variant="default" className="text-xs">
+            <Badge variant="default" className="text-xs bg-yellow-400 text-gray-800">
               <Zap className="w-3 h-3 mr-1" />
               {selectedProvider === "openai" ? "OpenAI GPT-4o Mini" : 
                selectedProvider === "v0" ? "V0 AI" : "Smart AI"}
             </Badge>
             <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                              <div className="w-2 h-2 bg-follain-green-600 rounded-full animate-pulse"></div>
               <span>Ready</span>
             </div>
           </div>
@@ -389,43 +394,44 @@ export default function ChatGPTClone() {
           {messages.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <Bot className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <h2 className="text-2xl font-semibold text-gray-700 mb-2">How can I help you today?</h2>
-                <p className="text-gray-500">Connected to {selectedProvider === "openai" ? "OpenAI's GPT-4o Mini" : 
-                  selectedProvider === "v0" ? "V0 AI" : "Smart AI (OpenAI + V0)"} API for real AI responses.</p>
-                <div className="mt-6 grid grid-cols-1 gap-2 max-w-md mx-auto">
+                <div className="w-16 h-16 mx-auto mb-4 bg-lavender-200 rounded-full flex items-center justify-center">
+                  <Sparkles className="w-8 h-8 text-follain-green-700" />
+                </div>
+                <h2 className="text-2xl font-semibold text-follain-green-800 mb-2">Your Personal Skincare Expert</h2>
+                <p className="text-gray-600 mb-6">Build your routine with our elevated essentials and expert guidance.</p>
+                <div className="mt-6 grid grid-cols-1 gap-3 max-w-md mx-auto">
                   <Button
                     variant="outline"
-                    className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("Show me a weather dashboard for New York")}
+                    className="text-left justify-start bg-white hover:bg-gray-50 border-gray-200 text-gray-700"
+                    onClick={() => handleSuggestedPrompt("Analyze my skin type and recommend a daily skincare routine")}
                   >
-                    "Show me a weather dashboard for New York"
+                    "Analyze my skin type and recommend a daily skincare routine"
                   </Button>
                   <Button
                     variant="outline"
-                    className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("Create a todo list with 5 tasks")}
+                    className="text-left justify-start bg-white hover:bg-gray-50 border-gray-200 text-gray-700"
+                    onClick={() => handleSuggestedPrompt("Create a skincare ingredient compatibility checker")}
                   >
-                    "Create a todo list with 5 tasks"
+                    "Create a skincare ingredient compatibility checker"
                   </Button>
                   <Button
                     variant="outline"
-                    className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("Display a comparison chart of AI models")}
+                    className="text-left justify-start bg-white hover:bg-gray-50 border-gray-200 text-gray-700"
+                    onClick={() => handleSuggestedPrompt("Show me a skincare progress tracker for my acne treatment")}
                   >
-                    "Display a comparison chart of AI models"
+                    "Show me a skincare progress tracker for my acne treatment"
                   </Button>
                   <Button
                     variant="outline"
-                    className="text-left justify-start bg-transparent"
-                    onClick={() => handleSuggestedPrompt("Show me a progress tracker for my goals")}
+                    className="text-left justify-start bg-white hover:bg-gray-50 border-gray-200 text-gray-700"
+                    onClick={() => handleSuggestedPrompt("Build a skincare product comparison dashboard")}
                   >
-                    "Show me a progress tracker for my goals"
+                    "Build a skincare product comparison dashboard"
                   </Button>
                 </div>
-                <div className="mt-4 text-xs text-gray-400">
-                  <p>🚀 Powered by {selectedProvider === "openai" ? "OpenAI's GPT-4o Mini" : 
-                    selectedProvider === "v0" ? "V0 AI" : "Smart AI (OpenAI + V0)"} API</p>
+                <div className="mt-6 text-xs text-gray-400">
+                  <p>✨ Powered by {selectedProvider === "openai" ? "OpenAI's GPT-4o Mini" : 
+                    selectedProvider === "v0" ? "V0 AI" : "Smart AI (OpenAI + V0)"} for expert skincare guidance</p>
                 </div>
 
               </div>
@@ -435,20 +441,20 @@ export default function ChatGPTClone() {
               {messages.map((message) => (
                 <div key={message.id} className="flex items-start space-x-4">
                   <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarFallback className={message.role === "user" ? "bg-blue-500" : "bg-green-500"}>
+                    <AvatarFallback className={message.role === "user" ? "bg-follain-green-700 text-white" : "bg-lavender-200 text-follain-green-700"}>
                       {message.role === "user" ? (
-                        <User className="w-4 h-4 text-white" />
+                        <User className="w-4 h-4" />
                       ) : (
-                        <Bot className="w-4 h-4 text-white" />
+                        <Sparkles className="w-4 h-4" />
                       )}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="font-semibold text-sm text-gray-700 mb-1">
-                      {message.role === "user" ? "You" : "ChatGPT"}
+                    <div className="font-semibold text-sm text-follain-green-800 mb-1">
+                      {message.role === "user" ? "You" : "Skincare Expert"}
                     </div>
                         <div className="prose prose-sm max-w-none">
-                        <p className="whitespace-pre-wrap">{message.content}</p>
+                        <p className="whitespace-pre-wrap text-gray-700">{message.content}</p>
                         
                         {message.componentFile && (
                           <div className="mt-4">
@@ -473,22 +479,22 @@ export default function ChatGPTClone() {
               {isLoading && (
                 <div className="flex items-start space-x-4">
                   <Avatar className="w-8 h-8 flex-shrink-0">
-                    <AvatarFallback className="bg-green-500">
-                      <Bot className="w-4 h-4 text-white" />
+                    <AvatarFallback className="bg-lavender-200 text-follain-green-700">
+                      <Sparkles className="w-4 h-4" />
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="font-semibold text-sm text-gray-700 mb-1">ChatGPT</div>
+                    <div className="font-semibold text-sm text-follain-green-800 mb-1">Skincare Expert</div>
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.1s" }}
-                      ></div>
-                      <div
-                        className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
+                                              <div className="w-2 h-2 bg-follain-green-600 rounded-full animate-bounce"></div>
+                        <div
+                          className="w-2 h-2 bg-lavender-400 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.1s" }}
+                        ></div>
+                        <div
+                          className="w-2 h-2 bg-follain-green-600 rounded-full animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        ></div>
                     </div>
                   </div>
                 </div>
@@ -507,22 +513,22 @@ export default function ChatGPTClone() {
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="Message ChatGPT..."
-                  className="pr-12 py-3 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  placeholder="Ask your skincare expert..."
+                  className="pr-12 py-3 text-base border-gray-300 focus:border-follain-green-600 focus:ring-follain-green-600 bg-white"
                   disabled={isLoading}
                 />
                 <Button
                   type="submit"
                   size="sm"
                   disabled={isLoading || !input.trim()}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-600"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-yellow-400 hover:bg-yellow-500 text-gray-800"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
               </div>
             </form>
             <p className="text-xs text-gray-500 mt-2 text-center">
-              ChatGPT can make mistakes. Consider checking important information.
+              💡 Ask about skin types, ingredients, routines, or product recommendations
             </p>
           </div>
         </div>

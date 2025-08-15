@@ -4,7 +4,7 @@ export const maxDuration = 30
 
 export async function POST(req: Request) {
   try {
-    console.log("=== V0 API ROUTE STARTED ===")
+    console.log("=== SKINCARE EXPERT V0 API ROUTE STARTED ===")
 
     // Check for API keys
     const v0ApiKey = process.env.V0_API_KEY
@@ -38,15 +38,22 @@ export async function POST(req: Request) {
     // Get the last user message
     const lastUserMessage = messages[messages.length - 1]?.content || ""
     
-    console.log("Making request to V0 API for component...")
+    console.log("Making request to V0 API for skincare component...")
 
-    // Create enhanced messages with documentation requirements
+    // Create enhanced messages with documentation requirements and skincare focus
     const enhancedMessages = [
       {
         role: "system",
-        content: `You are a React component generator that creates well-documented, production-ready components.
+        content: `You are a React component generator specializing in skincare and beauty applications. Create well-documented, production-ready components with a focus on skincare expertise.
 
 CRITICAL: Generate COMPLETE components - do not truncate or cut off the code. Ensure all components have proper closing tags, complete functions, and full implementations.
+
+SKINCARE FOCUS:
+- Use skincare-appropriate colors (pink, purple, soft tones, pastels)
+- Include beauty and skincare-related icons and imagery
+- Design for skincare professionals and beauty enthusiasts
+- Consider skincare-specific data structures (skin types, ingredients, routines, etc.)
+- Use appropriate terminology for skincare applications
 
 IMPORTANT: If the component is complex and might exceed token limits, prioritize completeness over documentation. Focus on the core functionality first, then add documentation if space allows.
 
@@ -61,6 +68,7 @@ IMPORTANT REQUIREMENTS:
 8. TEST THE COMPONENT before returning it
 9. ALWAYS include the complete export default statement
 10. Ensure all JSX elements have proper closing tags
+11. Use skincare-appropriate styling and design elements
 
 DOCUMENTATION FORMAT:
 - Use JSDoc comments with @param, @returns, @example tags
@@ -173,7 +181,7 @@ DOCUMENTATION FORMAT:
     }
 
     // Validate the generated component
-    console.log("Validating generated component...")
+    console.log("Validating generated skincare component...")
     const validationResult = validateComponent(componentCode)
     
     if (!validationResult.isValid) {
@@ -183,8 +191,8 @@ DOCUMENTATION FORMAT:
       console.log("✅ Component validation passed")
     }
 
-    // Now make a ChatGPT call to generate sample data
-    console.log("Making request to ChatGPT for sample data...")
+    // Now make a ChatGPT call to generate sample data with skincare focus
+    console.log("Making request to ChatGPT for skincare sample data...")
     
     const chatGptResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -197,18 +205,21 @@ DOCUMENTATION FORMAT:
         messages: [
           {
             role: "system",
-            content: "You are a helpful assistant that generates realistic sample data for React components. Return ONLY valid JSON with no explanations or markdown."
+            content: "You are a skincare expert assistant that generates realistic sample data for skincare-related React components. Return ONLY valid JSON with no explanations or markdown. Focus on skincare-specific data structures."
           },
           {
             role: "user",
-            content: `Based on this user request: "${lastUserMessage}"
+            content: `Based on this skincare-related user request: "${lastUserMessage}"
 
-Generate realistic sample data that would be appropriate for the component they want. Return ONLY a JSON object with the sample data.
+Generate realistic sample data that would be appropriate for the skincare component they want. Return ONLY a JSON object with the sample data.
 
-For example:
-- Weather component: {"location": "New York", "temperature": 72, "humidity": 65, "forecast": [...]}
-- Todo list: {"todos": [{"id": 1, "text": "Buy groceries", "completed": false}, ...]}
-- Dashboard: {"stats": {"users": 1234, "revenue": 56789}, "chartData": [...]}
+For skincare components, consider:
+- Skin types: oily, dry, combination, sensitive, normal
+- Ingredients: hyaluronic acid, retinol, vitamin C, niacinamide, etc.
+- Products: cleansers, moisturizers, serums, sunscreens, etc.
+- Routines: morning, evening, weekly treatments
+- Skin concerns: acne, aging, hyperpigmentation, dryness, etc.
+- Progress tracking: skin condition, product usage, results
 
 Return ONLY the JSON object.`
           }
@@ -227,7 +238,7 @@ Return ONLY the JSON object.`
       if (sampleDataText) {
         try {
           sampleData = JSON.parse(sampleDataText)
-          console.log("Successfully generated sample data:", sampleData)
+          console.log("Successfully generated skincare sample data:", sampleData)
         } catch (parseError) {
           console.error("Failed to parse ChatGPT sample data:", parseError)
           console.log("Raw sample data text:", sampleDataText)
@@ -242,11 +253,11 @@ Return ONLY the JSON object.`
     try {
       // Create analysis object with component code and sample data
       const analysis = {
-        intent: 'v0-generated',
+        intent: 'skincare-v0-generated',
         displayType: 'custom',
         dataStructure: { type: 'object' },
-        instructions: 'V0 generated component',
-        response: 'Component generated by V0 API',
+        instructions: 'V0 generated skincare component',
+        response: 'Skincare component generated by V0 API',
         sampleData: sampleData
       }
       
@@ -259,11 +270,11 @@ Return ONLY the JSON object.`
         componentFile: null,
         error: saveError instanceof Error ? saveError.message : 'Failed to save component',
         timestamp: new Date().toISOString(),
-        provider: "v0"
+        provider: "skincare-v0"
       })
     }
 
-    console.log("=== V0 API ROUTE SUCCESS ===")
+    console.log("=== SKINCARE EXPERT V0 API ROUTE SUCCESS ===")
 
     return Response.json({
       response: componentCode,
@@ -275,10 +286,10 @@ Return ONLY the JSON object.`
         sampleData: sampleData
       },
       timestamp: new Date().toISOString(),
-      provider: "v0"
+      provider: "skincare-v0"
     })
   } catch (error) {
-    console.error("=== CRITICAL V0 API ERROR ===")
+    console.error("=== CRITICAL SKINCARE EXPERT V0 API ERROR ===")
     console.error("Error type:", typeof error)
     console.error("Error constructor:", error?.constructor?.name)
     console.error("Error name:", error instanceof Error ? error.name : "Unknown")

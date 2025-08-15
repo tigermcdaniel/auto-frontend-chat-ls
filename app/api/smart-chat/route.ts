@@ -13,7 +13,7 @@ interface AnalysisResult {
 
 export async function POST(req: Request) {
   try {
-    console.log("=== SMART CHAT API ROUTE STARTED ===")
+    console.log("=== SKINCARE EXPERT SMART CHAT API ROUTE STARTED ===")
 
     // Check for API keys
     const openaiKey = process.env.API_KEY
@@ -37,26 +37,26 @@ export async function POST(req: Request) {
     console.log("Messages to process:", messages.length)
 
     // Step 1: Use OpenAI to analyze the request and determine the best way to display the response
-    console.log("Step 1: Analyzing request with OpenAI...")
+    console.log("Step 1: Analyzing skincare request with OpenAI...")
     
-    const analysisPrompt = `You are an AI assistant that analyzes user requests and determines the best way to display information. 
+    const analysisPrompt = `You are a skincare expert AI assistant that analyzes user requests and provides expert skincare guidance. 
 
 For each user request, analyze the intent and determine:
-1. What type of information is being requested
-2. The best way to display this information (chart, table, list, card, etc.)
-3. The data structure needed
-4. Specific instructions for creating the UI component
+1. What type of skincare information is being requested (skin analysis, product recommendations, routine planning, ingredient analysis, etc.)
+2. The best way to display this information (chart, table, list, card, form, dashboard, timeline, comparison, progress tracker, etc.)
+3. The data structure needed for the response
+4. Specific instructions for creating a skincare-focused UI component
 
 Respond in this exact JSON format:
 {
-  "intent": "brief description of what user wants",
-  "displayType": "chart|table|list|card|form|dashboard|timeline|map|gallery|calculator|comparison|progress|status|weather|calendar|todo|notes|search|filter|navigation",
+  "intent": "brief description of skincare-related request",
+  "displayType": "chart|table|list|card|form|dashboard|timeline|comparison|progress|routine|ingredient-checker|product-comparison|skin-analysis|treatment-tracker",
   "dataStructure": {
     "type": "object|array|string|number|boolean",
-    "properties": "describe the expected data structure"
+    "properties": "describe the expected data structure for skincare information"
   },
-  "instructions": "detailed instructions for creating the UI component",
-  "response": "your helpful response to the user's question"
+  "instructions": "detailed instructions for creating a skincare-focused UI component",
+  "response": "your expert skincare advice and recommendations"
 }
 
 User request: ${messages[messages.length - 1].content}`
@@ -72,7 +72,7 @@ User request: ${messages[messages.length - 1].content}`
         messages: [
           {
             role: "system",
-            content: "You are a helpful AI assistant that analyzes user requests and provides structured responses for UI generation."
+            content: "You are a certified skincare expert with deep knowledge of dermatology, ingredients, skin types, and product formulations. Provide accurate, safe, and personalized skincare advice. Always consider skin types, sensitivities, and individual needs. When recommending products or ingredients, explain the benefits and potential side effects. For any serious skin concerns, always recommend consulting with a dermatologist."
           },
           {
             role: "user",
@@ -92,7 +92,7 @@ User request: ${messages[messages.length - 1].content}`
     const openaiData = await openaiResponse.json()
     const analysisText = openaiData.choices[0].message.content
     
-    console.log("OpenAI analysis response:", analysisText)
+    console.log("OpenAI skincare analysis response:", analysisText)
 
     // Parse the analysis result
     let analysis: AnalysisResult
@@ -123,21 +123,21 @@ User request: ${messages[messages.length - 1].content}`
       console.error("Failed to parse OpenAI response:", parseError)
       // Fallback to a simple response
       analysis = {
-        intent: "general_query",
+        intent: "skincare_general_query",
         displayType: "text",
         dataStructure: { type: "string" },
-        instructions: "Display as simple text response",
+        instructions: "Display as simple text response with skincare advice",
         response: analysisText
       }
     }
 
-    console.log("Parsed analysis:", analysis)
+    console.log("Parsed skincare analysis:", analysis)
 
     // Step 2: Use V0 to generate a React component based on the analysis
-    console.log("Step 2: Generating UI component with V0...")
+    console.log("Step 2: Generating skincare UI component with V0...")
     console.log("V0 API Key (first 10 chars):", v0Key.substring(0, 10) + "...")
     
-    const v0Prompt = `Create a React component that displays the following information:
+    const v0Prompt = `Create a React component for skincare expertise that displays the following information:
 
 Intent: ${analysis.intent}
 Display Type: ${analysis.displayType}
@@ -146,13 +146,15 @@ Instructions: ${analysis.instructions}
 Response: ${analysis.response}
 
 Create a modern, responsive React component using Tailwind CSS and shadcn/ui components. The component should:
-- Be visually appealing and user-friendly
-- Handle the data appropriately for the display type
+- Be visually appealing with a skincare/beauty aesthetic (pink, purple, soft colors)
+- Handle skincare data appropriately for the display type
 - Include proper TypeScript types
 - Use appropriate shadcn/ui components
 - Be responsive and accessible
 - Have proper JSX structure with all content wrapped in valid JSX elements
 - Use proper data access patterns (e.g., data?.property instead of standalone {data.property})
+- Include skincare-specific styling and icons where appropriate
+- Be designed for skincare professionals and beauty enthusiasts
 
 IMPORTANT: Return only valid React/TypeScript code. All JSX content must be properly wrapped in elements. Do not include any explanations, comments, or markdown.`
 
@@ -170,7 +172,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
         messages: [
           {
             role: "system",
-            content: "You are a React component generator. Always return valid React/TypeScript code using Tailwind CSS and shadcn/ui components. IMPORTANT: All JSX content must be properly wrapped in valid JSX elements. Never return standalone data access expressions like {data.property} - they must be wrapped in JSX elements. Return only the component code, no explanations or markdown."
+            content: "You are a React component generator specializing in skincare and beauty applications. Always return valid React/TypeScript code using Tailwind CSS and shadcn/ui components. Use skincare-appropriate colors (pink, purple, soft tones) and design elements. IMPORTANT: All JSX content must be properly wrapped in valid JSX elements. Never return standalone data access expressions like {data.property} - they must be wrapped in JSX elements. Return only the component code, no explanations or markdown."
           },
           {
             role: "user",
@@ -192,7 +194,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
         component: null,
         analysis: analysis,
         timestamp: new Date().toISOString(),
-        provider: "openai-fallback"
+        provider: "skincare-expert-fallback"
       })
     }
 
@@ -205,7 +207,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
       console.error("V0 response text:", responseText)
       
       // Generate fallback component
-      console.log("Generating fallback component...")
+      console.log("Generating skincare fallback component...")
       const fallbackComponent = createFallbackComponent(analysis)
       
       // Save the fallback component to file
@@ -219,7 +221,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
           componentFile: savedComponent.filename,
           analysis: analysis,
           timestamp: new Date().toISOString(),
-          provider: "openai-fallback"
+          provider: "skincare-expert-fallback"
         })
       } catch (saveError) {
         console.error("Failed to save fallback component:", saveError)
@@ -231,7 +233,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
           analysis: analysis,
           error: saveError instanceof Error ? saveError.message : 'Failed to save component',
           timestamp: new Date().toISOString(),
-          provider: "openai-fallback"
+          provider: "skincare-expert-fallback"
         })
       }
     }
@@ -240,7 +242,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
       console.error("No choices in V0 response")
       
       // Generate fallback component
-      console.log("Generating fallback component...")
+      console.log("Generating skincare fallback component...")
       const fallbackComponent = createFallbackComponent(analysis)
       
       // Save the fallback component to file
@@ -254,7 +256,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
           componentFile: savedComponent.filename,
           analysis: analysis,
           timestamp: new Date().toISOString(),
-          provider: "openai-fallback"
+          provider: "skincare-expert-fallback"
         })
       } catch (saveError) {
         console.error("Failed to save fallback component:", saveError)
@@ -266,20 +268,20 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
           analysis: analysis,
           error: saveError instanceof Error ? saveError.message : 'Failed to save component',
           timestamp: new Date().toISOString(),
-          provider: "openai-fallback"
+          provider: "skincare-expert-fallback"
         })
       }
     }
     const componentCode = v0Data.choices[0].message.content
 
-    console.log("V0 component generated successfully")
+    console.log("V0 skincare component generated successfully")
 
     // Skip validation - use V0 component directly
     console.log("Using V0 component directly without validation...")
     const finalComponentCode = componentCode
 
     // Save the component to file
-    console.log("Saving component to file...")
+    console.log("Saving skincare component to file...")
     try {
       const savedComponent = await saveComponentToFile(finalComponentCode, analysis)
       
@@ -289,7 +291,7 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
           componentFile: savedComponent.filename,
           analysis: analysis,
           timestamp: new Date().toISOString(),
-          provider: "smart-chat"
+          provider: "skincare-expert-smart-chat"
         })
       } catch (saveError) {
         console.error("Failed to save component:", saveError)
@@ -301,12 +303,12 @@ IMPORTANT: Return only valid React/TypeScript code. All JSX content must be prop
           analysis: analysis,
           error: saveError instanceof Error ? saveError.message : 'Failed to save component',
           timestamp: new Date().toISOString(),
-          provider: "smart-chat-fallback"
+          provider: "skincare-expert-smart-chat-fallback"
         })
     }
 
   } catch (error) {
-    console.error("=== SMART CHAT API ERROR ===")
+    console.error("=== SKINCARE EXPERT SMART CHAT API ERROR ===")
     console.error("Error:", error)
 
     return Response.json(

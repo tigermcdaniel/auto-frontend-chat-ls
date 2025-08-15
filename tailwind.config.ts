@@ -62,6 +62,34 @@ const config: Config = {
   				'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
+  			},
+  			// Follain-inspired color palette
+  			lavender: {
+  				50: '#f8f7ff',
+  				100: '#f0eeff',
+  				200: '#e6e3ff',
+  				300: '#d1ccff',
+  				400: '#b3a6ff',
+  				500: '#9b8aff',
+  				600: '#8b6eff',
+  				700: '#7a5ce6',
+  				800: '#6a4fc8',
+  				900: '#5a42a3',
+  				950: '#3a2b6b'
+  			},
+  			// Follain green (dark green for text and branding)
+  			'follain-green': {
+  				50: '#f0f9f4',
+  				100: '#dcf2e3',
+  				200: '#bce4c9',
+  				300: '#8dd0a3',
+  				400: '#56b375',
+  				500: '#3a9a5d',
+  				600: '#2f7a4b',
+  				700: '#2a623f',
+  				800: '#254f35',
+  				900: '#1f422e',
+  				950: '#0f2417'
   			}
   		},
   		borderRadius: {

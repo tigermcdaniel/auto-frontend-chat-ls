@@ -1,5 +1,3 @@
-import SkeletonLib from "react-loading-skeleton"
-import "react-loading-skeleton/dist/skeleton.css"
 import { cn } from "@/lib/utils"
 
 function Skeleton({
@@ -7,11 +5,11 @@ function Skeleton({
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <SkeletonLib
-      className={cn("rounded-md", className)}
+    <div
+      className={cn("animate-pulse rounded-md bg-muted", className)}
       {...props}
     />
   )
 }
 
-export { Skeleton } 
+export { Skeleton }

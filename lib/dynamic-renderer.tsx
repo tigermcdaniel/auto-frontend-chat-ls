@@ -38,19 +38,19 @@ export function DynamicRenderer({
         const module = await import(`../components/generated/${filename}`)
 
         // Get the component by name or default export
-        let importedComponent = null
+        let importedComponent: React.ComponentType<any> | null = null
         if (componentName && module[componentName]) {
-          importedComponent = module[componentName]
+          importedComponent = module[componentName] as React.ComponentType<any>
           console.log('DynamicRenderer: Found component by name:', componentName)
         } else if (module.default) {
-          importedComponent = module.default
+          importedComponent = module.default as React.ComponentType<any>
           console.log('DynamicRenderer: Using default export')
         } else {
           // Try to find any exported function
           const exports = Object.keys(module)
           const componentExport = exports.find(key => typeof module[key] === 'function')
           if (componentExport) {
-            importedComponent = module[componentExport]
+            importedComponent = module[componentExport] as React.ComponentType<any>
             console.log('DynamicRenderer: Found component export:', componentExport)
           }
         }

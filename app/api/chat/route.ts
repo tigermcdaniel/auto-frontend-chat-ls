@@ -2,7 +2,7 @@ export const maxDuration = 30
 
 export async function POST(req: Request) {
   try {
-    console.log("=== API ROUTE STARTED ===")
+    console.log("=== SKINCARE EXPERT API ROUTE STARTED ===")
 
     // Check for API key in environment variables
     const apiKey = process.env.API_KEY
@@ -26,8 +26,16 @@ export async function POST(req: Request) {
     console.log("Messages to process:", messages.length)
     console.log("Messages content:", JSON.stringify(messages, null, 2))
 
+    // Add skincare expert system message to the beginning
+    const skincareSystemMessage = {
+      role: "system",
+      content: "You are a certified skincare expert with deep knowledge of dermatology, ingredients, skin types, and product formulations. Provide accurate, safe, and personalized skincare advice. Always consider skin types, sensitivities, and individual needs. When recommending products or ingredients, explain the benefits and potential side effects. For any serious skin concerns, always recommend consulting with a dermatologist. Your responses should be informative, helpful, and focused on skincare expertise."
+    }
+
+    const messagesWithSystem = [skincareSystemMessage, ...messages]
+
     // Try direct fetch to OpenAI API (like your working Python example)
-    console.log("Making direct fetch to OpenAI API...")
+    console.log("Making direct fetch to OpenAI API with skincare expertise...")
 
     const openaiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -37,7 +45,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
-        messages: messages,
+        messages: messagesWithSystem,
         stream: false, // Start with non-streaming for simplicity
       }),
     })
@@ -84,14 +92,14 @@ export async function POST(req: Request) {
       return Response.json({ error: "Empty response from OpenAI" }, { status: 500 })
     }
 
-    console.log("=== API ROUTE SUCCESS ===")
+    console.log("=== SKINCARE EXPERT API ROUTE SUCCESS ===")
 
     return Response.json({
       response: responseText,
       timestamp: new Date().toISOString(),
     })
   } catch (error) {
-    console.error("=== CRITICAL API ERROR ===")
+    console.error("=== CRITICAL SKINCARE EXPERT API ERROR ===")
     console.error("Error type:", typeof error)
     console.error("Error constructor:", error?.constructor?.name)
     console.error("Error name:", error instanceof Error ? error.name : "Unknown")
